@@ -11,22 +11,57 @@ def csvSearch():
     for filename in custInfoFiles:
         if filename.endswith(".csv"):
             file = open(os.path.join(csvDir, filename),"r")
-            reader = csv.reader(file, delimiter="\t")
+            reader = csv.reader(file, delimiter=",")
+
+            coords = dict()
 
             for row in reader:
                 if reader.line_num == 1:
                     continue #skips the headers at the start
 
-                #Check for potential phone numbers and ssn in the area code and zip code columns of the premade csv files.
-                if len(row[0]) == 10 or len(row[0]) == 9:
-                    logger.critical(f"Data found in {filename} in row {reader.line_num} contains personal identifiable information in column 1.")
-                    
-                    #Send email
-                    emailAlert("Sensitive information found in logs", f"Data found in {filename} in row {reader.line_num} contains personal identifiable information in column 1.")
-                if len(row[2]) == 10 or len(row[2]) == 9:
-                    logger.critical(f"Data found in {filename} in row {reader.line_num} contains personal identifiable information in column 3.")
+                #Check for potential phone numbers and ssn in the area code and zip code columns of the premade csv files. Checks for numbers in town names column
+                r = reader.line_num
+                msg = f"Data found in {filename} in row {r} contains personal identifiable information in column "
 
-                    #send email
-                    emailAlert("Sensitive information found in logs", f"Data found in {filename} in row {reader.line_num} contains personal identifiable information in column 3.")
+                if len(row[0]) == 10 or len(row[0]) == 9:
+                    logger.critical(msg+"1.")
+                    
+                    emailAlert("Sensitive information found in logs", msg+"1.")
+                    coords[r-1] = 0
+                if len(row[2]) == 10 or len(row[2]) == 9:
+                    logger.critical(msg+"3.")
+
+                    emailAlert("Sensitive information found in logs", msg+"3.")
+                    coords[r-1] = 2
+                if row[1].isnumeric():
+                    logger.critical(msg+"2.")
+
+                    emailAlert("Sensitive information found in logs", msg+"2.")
+                    coords[r-1] = 1
+            
+            file.close()
+            if len(coords) > 0:
+                csvWrite(filename, coords)
+
+
+def csvWrite(filename, coords):
+    content = "Sensitive Data removed"
+
+    #file must be reopened since reader already iterated and cannot write while iterating
+    file = open(os.path.join(csvDir, filename), "r")
+    reader = csv.reader(file, delimiter=",")
+
+    currentContent = list(reader)
+    file.close()
+    logger.debug(currentContent)
+
+    for row,column in coords.items():
+        currentContent[row][column] = content
+
+    file = open(os.path.join(csvDir, filename), "w")
+    writer = csv.writer(file)
+    writer.writerows(currentContent)
+    file.close()
+
 
 csvSearch()
