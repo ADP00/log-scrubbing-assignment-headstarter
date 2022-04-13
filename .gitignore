@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#File containing sender and receiver emails, as well as the sender's password
+emails.json
