@@ -27,17 +27,17 @@ def csvSearch():
                     logger.critical(msg+"1.")
                     
                     emailAlert("Sensitive information found in logs", msg+"1.")
-                    coords[r-1] = 0
+                    addCoord(coords, r-1, 0)
                 if len(row[2]) == 10 or len(row[2]) == 9:
                     logger.critical(msg+"3.")
 
                     emailAlert("Sensitive information found in logs", msg+"3.")
-                    coords[r-1] = 2
+                    addCoord(coords, r-1, 2)
                 if row[1].isnumeric():
                     logger.critical(msg+"2.")
 
                     emailAlert("Sensitive information found in logs", msg+"2.")
-                    coords[r-1] = 1
+                    addCoord(coords, r-1, 1)
             
             file.close()
             if len(coords) > 0:
@@ -53,15 +53,23 @@ def csvWrite(filename, coords):
 
     currentContent = list(reader)
     file.close()
-    logger.debug(currentContent)
+    #logger.debug(currentContent)
 
-    for row,column in coords.items():
-        currentContent[row][column] = content
+    for row,columns in coords.items():
+        for column in columns:
+            currentContent[row][column] = content
 
-    file = open(os.path.join(csvDir, filename), "w")
+    file = open(os.path.join(csvDir, filename), "w", newline="")
     writer = csv.writer(file)
     writer.writerows(currentContent)
     file.close()
+
+#Since pii can be in more than one column in a row, the dict needs to store a list of values for a key
+def addCoord(coords, row, col):
+    if row not in coords:
+        coords[row] = [col]
+    else:
+        coords[row].append(col)
 
 
 csvSearch()
