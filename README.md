@@ -12,3 +12,5 @@ It must be in the format:
 }
 ```
 The sender email must be a yahoo account, otherwise the code must be changed. If a yahoo account is used, a password must be generated for use with a third party application. This can be done in settings, account security, other ways to sign in.
+
+Run csvSearch.py to run the program.
