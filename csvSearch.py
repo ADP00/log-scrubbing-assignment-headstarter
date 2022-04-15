@@ -45,7 +45,9 @@ def csvSearch():
 
 
 def csvWrite(filename, coords):
-    content = "Sensitive Data removed"
+    zipContent = "00000"
+    areaCodeContent = "000"
+    townContent = "Sensitive Data removed"
 
     #file must be reopened since reader already iterated and cannot write while iterating
     file = open(os.path.join(csvDir, filename), "r")
@@ -57,7 +59,13 @@ def csvWrite(filename, coords):
 
     for row,columns in coords.items():
         for column in columns:
-            currentContent[row][column] = content
+            #Replaces pii with content that will not cause an alert
+            if column == 0:
+                currentContent[row][column] = areaCodeContent
+            elif column == 1:
+                currentContent[row][column] = townContent
+            elif column == 2:
+                currentContent[row][column] = zipContent
 
     file = open(os.path.join(csvDir, filename), "w", newline="")
     writer = csv.writer(file)
