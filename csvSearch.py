@@ -1,5 +1,6 @@
 import csv
 import os
+import re
 from loguru import logger
 from emailAlert import emailAlert
 
@@ -19,23 +20,26 @@ def csvSearch():
                 if reader.line_num == 1:
                     continue #skips the headers at the start
 
-                #Check for potential phone numbers and ssn in the area code and zip code columns of the premade csv files. Checks for numbers in town names column
+                
                 r = reader.line_num
                 msg = f"Data found in {filename} in row {r} contains personal identifiable information in column "
 
-                if len(row[0]) == 10 or len(row[0]) == 9:
+                #Checks for potential pii in the columns of the row
+                #Checks for 9 digit SSNs, 10 digit phone numbers, and letters in the area code column
+                if (row[0].isnumeric() and (len(row[0]) == 10 or len(row[0]) == 9)) or re.search('[a-zA-Z]', row[0]):
                     logger.critical(msg+"1.")
-                    
                     emailAlert("Sensitive information found in logs", msg+"1.")
                     addCoord(coords, r-1, 0)
-                if len(row[2]) == 10 or len(row[2]) == 9:
-                    logger.critical(msg+"3.")
 
+                #Checks for the same things in the zip code column
+                if (row[0].isnumeric() and (len(row[2]) == 10 or len(row[2]) == 9)) or re.search('[a-zA-Z]', row[2]):
+                    logger.critical(msg+"3.")
                     emailAlert("Sensitive information found in logs", msg+"3.")
                     addCoord(coords, r-1, 2)
-                if row[1].isnumeric():
-                    logger.critical(msg+"2.")
 
+                #Checks for any numbers in the town name column
+                if re.search('[0-9]', row[1]):
+                    logger.critical(msg+"2.")
                     emailAlert("Sensitive information found in logs", msg+"2.")
                     addCoord(coords, r-1, 1)
             
