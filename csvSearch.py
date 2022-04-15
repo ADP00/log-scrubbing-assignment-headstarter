@@ -19,7 +19,6 @@ def csvSearch():
             for row in reader:
                 if reader.line_num == 1:
                     continue #skips the headers at the start
-
                 
                 r = reader.line_num
                 msg = f"Data found in {filename} in row {r} contains personal identifiable information in column "
@@ -32,7 +31,7 @@ def csvSearch():
                     addCoord(coords, r-1, 0)
 
                 #Checks for the same things in the zip code column
-                if (row[0].isnumeric() and (len(row[2]) == 10 or len(row[2]) == 9)) or re.search('[a-zA-Z]', row[2]):
+                if (row[2].isnumeric() and (len(row[2]) == 10 or len(row[2]) == 9)) or re.search('[a-zA-Z]', row[2]):
                     logger.critical(msg+"3.")
                     emailAlert("Sensitive information found in logs", msg+"3.")
                     addCoord(coords, r-1, 2)
